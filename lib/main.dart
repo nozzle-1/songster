@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:minio/minio.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 final minio = Minio(
     endPoint: const String.fromEnvironment("S3_ENDPOINT"),
@@ -40,7 +42,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Songster'),
     );
   }
 }
@@ -68,41 +70,54 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isPlaying = false;
   final player = AudioPlayer(); // Create a player
   String _title = "";
+  bool _isScanning = false;
 
   @override
   void initState() {
-    setSong();
+    player.playerStateStream.listen((state) {
+      setState(() {
+        isPlaying = state.playing;
+      });
+    });
     super.initState();
+    setSong(1);
   }
 
   @override
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-      isPlaying = false;
-      setSong();
-    });
+  Future<void> _setUrl(String? url) async {
+    if (url!.isEmpty) {
+      return;
+    }
+
+    final regex = new RegExp('www.hitstergame.com/[a-z]{2}/[0-9]{5}');
+    if (regex.hasMatch(url)) {
+      final splitted = url.split("/");
+      final c = int.parse(splitted[2]);
+
+      setState(() {
+        _counter = c;
+        isPlaying = false;
+      });
+
+      await setSong(c);
+    }
   }
 
-  void setSong() async {
-    var padded = "$_counter".padLeft(5, "0");
-    var val = await minio.presignedGetObject(bucket, 'fr/$padded.m4a');
+  Future<void> setSong(int counter) async {
+    var padded = "$counter".padLeft(5, "0");
+    var val = await minio.presignedGetObject(bucket, 'fr/$padded.m4a',
+        expires: 60 * 15);
     print(val);
     final duration = await player.setUrl(val);
+    await player.setVolume(1.0);
   }
 
-  void play() async {
-    setState(() {
-      isPlaying = true;
-      player.play();
-    });
+  Future<void> play() async {
+    await player.play();
   }
 
-  void stop() async {
-    setState(() {
-      isPlaying = false;
-      player.stop();
-    });
+  Future<void> stop() async {
+    await player.stop();
   }
 
   @override
@@ -142,13 +157,39 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Builder(builder: (context) {
+              if (_isScanning) {
+                return SizedBox(
+                    height: 400,
+                    child: MobileScanner(
+                      onDetect: (capture) async {
+                        setState(() {
+                          _isScanning = false;
+                        });
+                        final List<Barcode> barcodes = capture.barcodes;
+                        for (final barcode in barcodes) {
+                          await _setUrl(barcode.rawValue);
+                        }
+                      },
+                    ));
+              }
+
+              return TextButton(
+                onPressed: () {
+                  setState(() {
+                    _isScanning = true;
+                  });
+                },
+                child: const Text("Scanner"),
+              );
+            }),
             Text(
               _title,
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            // Text(
+            //   'Title: $_counter',
+            //   style: Theme.of(context).textTheme.headlineMedium,
+            // ),
             FloatingActionButton(
               onPressed: isPlaying ? stop : play,
               tooltip: 'Play/Stop',
@@ -157,11 +198,11 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: setUrl,
+      //   tooltip: 'Increment',
+      //   child: const Icon(Icons.add),
+      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
