@@ -1,8 +1,10 @@
+import 'package:animate_gradient/animate_gradient.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:minio/minio.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 final minio = Minio(
     endPoint: const String.fromEnvironment("S3_ENDPOINT"),
@@ -66,7 +68,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 1;
+  int _counter = 0;
   bool isPlaying = false;
   final player = AudioPlayer(); // Create a player
   String _title = "";
@@ -120,6 +122,10 @@ class _MyHomePageState extends State<MyHomePage> {
     await player.stop();
   }
 
+  bool get songScanned => _counter > 1;
+
+  String get songCode => "$_counter".padLeft(5, "0");
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -129,73 +135,114 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Builder(builder: (context) {
-              if (_isScanning) {
-                return SizedBox(
-                    height: 400,
-                    child: MobileScanner(
-                      onDetect: (capture) async {
-                        setState(() {
-                          _isScanning = false;
-                        });
-                        final List<Barcode> barcodes = capture.barcodes;
-                        for (final barcode in barcodes) {
-                          await _setUrl(barcode.rawValue);
-                        }
-                      },
-                    ));
-              }
+      // appBar: AppBar(
+      //   // TRY THIS: Try changing the color here to a specific color (to
+      //   // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+      //   // change color while the other colors stay the same.
+      //   backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      //   // Here we take the value from the MyHomePage object that was created by
+      //   // the App.build method, and use it to set our appbar title.
+      //   title: Text(widget.title),
+      // ),
+      body: AnimateGradient(
+        duration: const Duration(seconds: 10),
+        primaryBeginGeometry: const AlignmentDirectional(0, 4),
+        primaryEndGeometry: const AlignmentDirectional(0, 4),
+        secondaryBeginGeometry: const AlignmentDirectional(2, 0),
+        secondaryEndGeometry: const AlignmentDirectional(0, -0.8),
+        textDirectionForGeometry: TextDirection.rtl,
+        reverse: true,
+        primaryColors: const [
+          Color(0xFF000000),
+          Color(0xFF24213E),
+          Color(0xFF39223F),
+          Color(0xFF552441),
+          Color(0xFFBC6538),
+          Color(0xFFA9345D),
+          Color(0xFFBF4487),
+        ],
+        secondaryColors: const [
+          Color(0xFFC7267D),
+          Color(0xFFA6397C),
+          Color(0xFF943A6E),
+          Color(0xFF943A6E),
+          Color(0xFF3C0F38),
+          Color(0xFF270D30),
+          Color(0xFF110729),
+        ],
+        child: Center(
+          // Center is a layout widget. It takes a single child and positions it
+          // in the middle of the parent.
+          child: Column(
+            // Column is also a layout widget. It takes a list of children and
+            // arranges them vertically. By default, it sizes itself to fit its
+            // children horizontally, and tries to be as tall as its parent.
+            //
+            // Column has various properties to control how it sizes itself and
+            // how it positions its children. Here we use mainAxisAlignment to
+            // center the children vertically; the main axis here is the vertical
+            // axis because Columns are vertical (the cross axis would be
+            // horizontal).
+            //
+            // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
+            // action in the IDE, or press "p" in the console), to see the
+            // wireframe for each widget.
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              if (songScanned)
+                Container(
+                  margin: const EdgeInsets.all(12),
+                  color: Colors.white,
+                  child: QrImageView(
+                    data: 'www.hitstergame.com/fr/$songCode',
+                    version: QrVersions.auto,
+                    size: 200.0,
+                  ),
+                ),
+              Builder(builder: (context) {
+                if (_isScanning) {
+                  return SizedBox(
+                      height: 400,
+                      child: MobileScanner(
+                        onDetect: (capture) async {
+                          setState(() {
+                            _isScanning = false;
+                          });
+                          final List<Barcode> barcodes = capture.barcodes;
+                          for (final barcode in barcodes) {
+                            await _setUrl(barcode.rawValue);
+                          }
+                        },
+                      ));
+                }
 
-              return TextButton(
-                onPressed: () {
-                  setState(() {
-                    _isScanning = true;
-                  });
-                },
-                child: const Text("Scanner"),
-              );
-            }),
-            Text(
-              _title,
-            ),
-            // Text(
-            //   'Title: $_counter',
-            //   style: Theme.of(context).textTheme.headlineMedium,
-            // ),
-            FloatingActionButton(
-              onPressed: isPlaying ? stop : play,
-              tooltip: 'Play/Stop',
-              child: Icon(isPlaying ? Icons.stop : Icons.play_arrow),
-            ), // This trai
-          ],
+                return TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _counter = 0;
+                      _isScanning = true;
+                    });
+                  },
+                  style: const ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(Colors.white),
+                      foregroundColor: WidgetStatePropertyAll(Colors.black)),
+                  child: const Text("Scanner"),
+                );
+              }),
+              Text(
+                _title,
+              ),
+
+              if (songScanned)
+                FloatingActionButton(
+                  onPressed: isPlaying ? stop : play,
+                  tooltip: 'Play/Stop',
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  child: Icon(isPlaying ? Icons.stop : Icons.play_arrow),
+                ), // This trai
+            ],
+          ),
         ),
       ),
       // floatingActionButton: FloatingActionButton(
