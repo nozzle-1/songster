@@ -1,4 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:minio/minio.dart';
+
+final minio = Minio(
+    endPoint: const String.fromEnvironment("S3_ENDPOINT"),
+    accessKey: const String.fromEnvironment("S3_ACCESS_KEY"),
+    secretKey: const String.fromEnvironment("S3_SECRET_KEY"));
+
+const bucket = String.fromEnvironment("S3_BUCKET");
 
 void main() {
   runApp(const MyApp());
@@ -55,16 +64,44 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  int _counter = 1;
+  bool isPlaying = false;
+  final player = AudioPlayer(); // Create a player
+  String _title = "";
 
+  @override
+  void initState() {
+    setSong();
+    super.initState();
+  }
+
+  @override
   void _incrementCounter() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
       _counter++;
+      isPlaying = false;
+      setSong();
+    });
+  }
+
+  void setSong() async {
+    var padded = "$_counter".padLeft(5, "0");
+    var val = await minio.presignedGetObject(bucket, 'fr/$padded.m4a');
+    print(val);
+    final duration = await player.setUrl(val);
+  }
+
+  void play() async {
+    setState(() {
+      isPlaying = true;
+      player.play();
+    });
+  }
+
+  void stop() async {
+    setState(() {
+      isPlaying = false;
+      player.stop();
     });
   }
 
@@ -105,13 +142,18 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            Text(
+              _title,
             ),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+            FloatingActionButton(
+              onPressed: isPlaying ? stop : play,
+              tooltip: 'Play/Stop',
+              child: Icon(isPlaying ? Icons.stop : Icons.play_arrow),
+            ), // This trai
           ],
         ),
       ),
