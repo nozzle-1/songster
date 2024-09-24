@@ -41,6 +41,11 @@ dependencies:
   qr_flutter: ^4.1.0
   mobile_scanner: ^5.2.3
   animate_gradient: ^0.0.3
+  flutter_flip_card: ^0.0.6
+  page_flip_builder: ^0.1.4
+  image_picker: ^1.1.2
+  safe_device: ^1.1.8
+  device_info_plus: ^10.1.2
 
 dev_dependencies:
   flutter_test:
