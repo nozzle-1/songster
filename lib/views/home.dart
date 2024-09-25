@@ -6,28 +6,31 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Expanded(flex: 4, child: Center(child: Text("Songster"))),
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(Colors.amber)),
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const Game(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Expanded(flex: 4, child: Center(child: Text("Songster"))),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all(Colors.amber)),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const Game(),
+                      ),
                     ),
+                    child: const Text("Jouer"),
                   ),
-                  child: const Text("Jouer"),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

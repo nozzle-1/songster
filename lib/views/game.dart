@@ -18,76 +18,80 @@ class _MyWidgetState extends State<Game> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: Builder(builder: (context) {
-                  if (_isScanning) {
-                    return Card(
-                      margin: const EdgeInsets.all(25),
-                      child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12.0),
-                          child: QrCodeScanner(
-                            onDetect: (qrCodeValue) {
-                              setState(() {
-                                _isScanning = false;
-                              });
-                              print("BARCODE VALUE $qrCodeValue");
-                            },
-                          )),
-                    );
-                  }
-                  return GestureDetector(
-                    onTap: () {
-                      pageFlipKey.currentState?.flip();
-                    },
-                    child: PageFlipBuilder(
-                      key: pageFlipKey,
-                      frontBuilder: (_) => Card(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Center(
+        child: Column(
+          children: [
+            Expanded(
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: Builder(builder: (context) {
+                    if (_isScanning) {
+                      return Card(
                         margin: const EdgeInsets.all(25),
-                        color: Colors.white,
-                        child: QrImageView(
-                          data: 'www.hitstergame.com/fr/00001',
-                          version: QrVersions.auto,
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12.0),
+                            child: QrCodeScanner(
+                              onDetect: (qrCodeValue) {
+                                setState(() {
+                                  _isScanning = false;
+                                });
+                                print("BARCODE VALUE $qrCodeValue");
+                              },
+                            )),
+                      );
+                    }
+                    return GestureDetector(
+                      onTap: () {
+                        pageFlipKey.currentState?.flip();
+                      },
+                      child: PageFlipBuilder(
+                        key: pageFlipKey,
+                        frontBuilder: (_) => Card(
+                          margin: const EdgeInsets.all(25),
+                          color: Colors.white,
+                          child: QrImageView(
+                            data: 'www.hitstergame.com/fr/00001',
+                            version: QrVersions.auto,
+                          ),
+                        ),
+                        backBuilder: (_) => const Card(
+                          margin: EdgeInsets.all(25),
+                          color: Colors.green,
+                          child: Center(
+                            child: Text("Test"),
+                          ),
                         ),
                       ),
-                      backBuilder: (_) => const Card(
-                        margin: EdgeInsets.all(25),
-                        color: Colors.green,
-                        child: Center(
-                          child: Text("Test"),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
+                    );
+                  }),
+                ),
               ),
             ),
-          ),
-          Align(
-            alignment: AlignmentDirectional.bottomCenter,
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.all(Colors.amber)),
-                    onPressed: () {
-                      setState(() {
-                        _isScanning = true;
-                      });
-                    },
-                    child: const Text("Scanner"),
+            Align(
+              alignment: AlignmentDirectional.bottomCenter,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      style: ButtonStyle(
+                          backgroundColor:
+                              WidgetStateProperty.all(Colors.amber)),
+                      onPressed: () {
+                        setState(() {
+                          _isScanning = true;
+                        });
+                      },
+                      child: const Text("Scanner"),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -37,7 +37,7 @@ class GradientBackground extends StatelessWidget {
           Color(0xFF110729),
         ],
         child: SafeArea(
-          minimum: const EdgeInsets.symmetric(horizontal: 24),
+          // minimum: const EdgeInsets.symmetric(horizontal: 24),
           child: child,
         ));
   }
