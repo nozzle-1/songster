@@ -46,6 +46,7 @@ dependencies:
   image_picker: ^1.1.2
   safe_device: ^1.1.8
   device_info_plus: ^10.1.2
+  neon: ^0.1.0
 
 dev_dependencies:
   flutter_test:

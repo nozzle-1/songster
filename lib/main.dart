@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
       title: 'Songster',
       theme: theme,
       routes: {
-        '/': (context) => const Home(),
+        '/': (context) => Home(),
         '/game': (context) => const Game(),
       },
       builder: (context, child) => Scaffold(

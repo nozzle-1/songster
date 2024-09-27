@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:neon/neon.dart';
 import 'package:songster/views/game.dart';
+import 'package:songster/widgets/buttons.dart';
 
 class Home extends StatelessWidget {
-  const Home({super.key});
+  Home({super.key});
+
+  final List<String> titleParts = ["Bienvenue", "sur", "Songster"];
+
+  bool isTitle(String word) {
+    return titleParts.indexOf(word) == titleParts.length - 1;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,23 +20,30 @@ class Home extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Expanded(flex: 4, child: Center(child: Text("Songster"))),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.all(Colors.amber)),
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const Game(),
+            Expanded(
+                flex: 4,
+                child: Center(
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (String part in titleParts)
+                      Neon(
+                        text: part,
+                        color: Colors.pink,
+                        fontSize: isTitle(part) ? 50 : 30,
+                        font: NeonFont.Beon,
+                        flickeringText: isTitle(part),
                       ),
-                    ),
-                    child: const Text("Jouer"),
-                  ),
+                  ],
+                ))),
+            MainButton(
+              label: "Jouer",
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const Game(),
                 ),
-              ],
-            ),
+              ),
+            )
           ],
         ),
       ),
