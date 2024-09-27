@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_flip_card/flutter_flip_card.dart';
 import 'package:page_flip_builder/page_flip_builder.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:songster/widgets/buttons.dart';
 import 'package:songster/widgets/qr_code_scanner.dart';
 
@@ -24,7 +24,7 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
   void initState() {
     setState(() {
       _controller = AnimationController(
-        duration: const Duration(milliseconds: 800),
+        duration: const Duration(milliseconds: 500),
         vsync: this,
       );
       _animation = CurvedAnimation(
@@ -73,11 +73,27 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                         child: PageFlipBuilder(
                           key: pageFlipKey,
                           frontBuilder: (_) => Card(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25)),
+                            elevation: 0,
                             margin: const EdgeInsets.all(25),
-                            color: Colors.white,
-                            child: QrImageView(
-                              data: 'www.hitstergame.com/fr/00001',
-                              version: QrVersions.auto,
+                            color: const Color(0x11FFFFFF),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                    height: 220,
+                                    decoration: BoxDecoration(
+                                        color: Colors.transparent,
+                                        borderRadius:
+                                            BorderRadius.circular(15)),
+                                    child: PrettyQrView.data(
+                                        data: 'www.hitstergame.com/fr/00001',
+                                        decoration: const PrettyQrDecoration(
+                                          shape: PrettyQrSmoothSymbol(
+                                              color: Colors.white),
+                                        ))),
+                              ],
                             ),
                           ),
                           backBuilder: (_) => const Card(
