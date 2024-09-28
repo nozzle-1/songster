@@ -114,9 +114,15 @@ RiveAnimation.asset(
         width: MediaQuery.of(context).size.width,
         child: Stack(
           children: [
-            const RiveAnimation.asset(
-              'assets/rive/color_morph.riv',
+            // const RiveAnimation.asset(
+            //   'assets/rive/color_morph.riv',
+            //   fit: BoxFit.cover,
+            // ),
+            Image.asset(
+              "assets/bg-2.gif",
               fit: BoxFit.cover,
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
             ),
             buildChild()
           ],

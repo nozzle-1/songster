@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:safe_device/safe_device.dart';
@@ -12,7 +14,7 @@ class QrCodeScanner extends StatefulWidget {
 }
 
 class _QrCodeScannerState extends State<QrCodeScanner> {
-  final MobileScannerController _controller = MobileScannerController();
+  final _random = Random();
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +29,11 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
     if (isPhysicalDevice) {
       return;
     }
-    // TODO: random on number
-    widget.onDetect("www.hitster.com/fr/00001");
+
+    final songId = _random.nextInt(307) + 1;
+    var padded = "$songId".padLeft(5, "0");
+
+    widget.onDetect("www.hitster.com/fr/$padded");
   }
 
   void onDetect(BarcodeCapture? capture) {

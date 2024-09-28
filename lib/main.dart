@@ -1,6 +1,7 @@
 import 'package:animate_gradient/animate_gradient.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:metadata_god/metadata_god.dart';
 import 'package:minio/minio.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -17,6 +18,7 @@ final minio = Minio(
 const bucket = String.fromEnvironment("S3_BUCKET");
 
 void main() {
+  MetadataGod.initialize();
   runApp(const MyApp());
 }
 

@@ -1,9 +1,21 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_flip_card/flutter_flip_card.dart';
-import 'package:page_flip_builder/page_flip_builder.dart';
-import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:metadata_god/metadata_god.dart';
+import 'package:minio/minio.dart';
 import 'package:songster/widgets/buttons.dart';
+import 'package:songster/widgets/hitster_card.dart';
 import 'package:songster/widgets/qr_code_scanner.dart';
+import 'package:path_provider/path_provider.dart' as syspaths;
+
+//TODO: exporter dans un repository
+final minio = Minio(
+    endPoint: const String.fromEnvironment("S3_ENDPOINT"),
+    accessKey: const String.fromEnvironment("S3_ACCESS_KEY"),
+    secretKey: const String.fromEnvironment("S3_SECRET_KEY"));
+const bucket = String.fromEnvironment("S3_BUCKET");
 
 class Game extends StatefulWidget {
   const Game({super.key});
@@ -14,26 +26,25 @@ class Game extends StatefulWidget {
 
 class _GameState extends State<Game> with TickerProviderStateMixin {
   final flipController = FlipCardController();
-  final pageFlipKey = GlobalKey<PageFlipBuilderState>();
   bool _isScanning = false;
+  bool _isPlaying = false;
+  final _player = AudioPlayer(); // Create a player
 
-  late final AnimationController _controller;
-  late Animation<double> _animation;
+  String _qrCodeValue = "";
+
+  Metadata? _metadata;
 
   @override
   void initState() {
-    setState(() {
-      _controller = AnimationController(
-        duration: const Duration(milliseconds: 500),
-        vsync: this,
-      );
-      _animation = CurvedAnimation(
-        parent: _controller,
-        curve: Curves.fastOutSlowIn,
-      );
+    _player.playerStateStream.listen((state) {
+      setState(() {
+        _isPlaying = state.playing;
+      });
     });
     super.initState();
   }
+
+  bool get _showCard => _qrCodeValue.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -54,72 +65,74 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                             borderRadius: BorderRadius.circular(12.0),
                             child: QrCodeScanner(
                               onDetect: (qrCodeValue) {
+                                //TODO: checker ici qu'il s'agit d'une URL valide
                                 setState(() {
                                   _isScanning = false;
-                                  _controller.value = 0;
-                                  _controller.forward();
+                                  _qrCodeValue = qrCodeValue;
                                 });
                                 print("BARCODE VALUE $qrCodeValue");
                               },
                             )),
                       );
                     }
-                    return GestureDetector(
-                      onTap: () {
-                        pageFlipKey.currentState?.flip();
-                      },
-                      child: ScaleTransition(
-                        scale: _animation,
-                        child: PageFlipBuilder(
-                          key: pageFlipKey,
-                          frontBuilder: (_) => Card(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25)),
-                            elevation: 0,
-                            margin: const EdgeInsets.all(25),
-                            color: const Color(0x11FFFFFF),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                    height: 220,
-                                    decoration: BoxDecoration(
-                                        color: Colors.transparent,
-                                        borderRadius:
-                                            BorderRadius.circular(15)),
-                                    child: PrettyQrView.data(
-                                        data: 'www.hitstergame.com/fr/00001',
-                                        decoration: const PrettyQrDecoration(
-                                          shape: PrettyQrSmoothSymbol(
-                                              color: Colors.white),
-                                        ))),
-                              ],
-                            ),
-                          ),
-                          backBuilder: (_) => const Card(
-                            margin: EdgeInsets.all(25),
-                            color: Colors.green,
-                            child: Center(
-                              child: Text("Test"),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
+                    if (_showCard) {
+                      return HitsterCard(
+                          hitsterUrl: _qrCodeValue, metadata: _metadata);
+                    }
+
+                    return const SizedBox();
                   }),
                 ),
               ),
             ),
+            if (_showCard)
+              IconButton.filled(
+                onPressed: () async {
+                  if (_isPlaying) {
+                    await _player.stop();
+                    return;
+                  }
+
+                  final splitted = _qrCodeValue.split("/");
+                  final c = int.parse(splitted[2]);
+                  var padded = "$c".padLeft(5, "0");
+                  var fileName = "$padded.m4a";
+                  var val = await minio.presignedGetObject(
+                      bucket, 'fr/$fileName',
+                      expires: 60 * 15);
+
+                  final appDir = await syspaths.getTemporaryDirectory();
+                  final filePath = '${appDir.path}/$fileName';
+                  File file = File(filePath);
+                  var songStream =
+                      await minio.getObject(bucket, 'fr/$fileName');
+
+                  var songBytes = await songStream.toList();
+                  for (var songByte in songBytes) {
+                    await file.writeAsBytes(songByte, mode: FileMode.append);
+                  }
+
+                  _metadata = await MetadataGod.readMetadata(file: filePath);
+
+                  final duration = await _player.setUrl(val);
+                  await _player.setVolume(1.0);
+                  await _player.play();
+                },
+                icon: Icon(_isPlaying ? Icons.stop : Icons.play_arrow),
+                style: ElevatedButton.styleFrom(
+                  shape: const CircleBorder(),
+                  backgroundColor: Colors.white.withAlpha(70),
+                ),
+              ),
             Align(
               alignment: AlignmentDirectional.bottomCenter,
               child: MainButton(
                 label: "Scanner",
-                onPressed: () {
+                onPressed: () async {
+                  await _player.stop();
                   setState(() {
-                    //_controller.value = 1;
-
-                    // _controller.reverse();
                     _isScanning = true;
+                    _qrCodeValue = "";
                   });
                 },
               ),
