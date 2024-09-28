@@ -65,6 +65,8 @@ PODS:
     - Flutter
     - FlutterMacOS
   - PromisesObjC (2.4.0)
+  - rive_common (0.0.1):
+    - Flutter
   - safe_device (1.0.0):
     - DTTJailbreakDetection
     - Flutter
@@ -77,6 +79,7 @@ DEPENDENCIES:
   - just_audio (from `.symlinks/plugins/just_audio/ios`)
   - mobile_scanner (from `.symlinks/plugins/mobile_scanner/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - rive_common (from `.symlinks/plugins/rive_common/ios`)
   - safe_device (from `.symlinks/plugins/safe_device/ios`)
 
 SPEC REPOS:
@@ -110,6 +113,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/mobile_scanner/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  rive_common:
+    :path: ".symlinks/plugins/rive_common/ios"
   safe_device:
     :path: ".symlinks/plugins/safe_device/ios"
 
@@ -134,6 +139,7 @@ SPEC CHECKSUMS:
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  rive_common: cbbac3192af00d7341f19dae2f26298e9e37d99e
   safe_device: 4539eb6bdbeb4b61a763a51c4e73e6b37dea4e3d
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796

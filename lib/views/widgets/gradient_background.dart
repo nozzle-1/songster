@@ -2,7 +2,11 @@ import 'dart:math';
 
 import 'package:animate_gradient/animate_gradient.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_shaders/flutter_shaders.dart';
 import 'package:mesh_gradient/mesh_gradient.dart';
+import 'package:rive/rive.dart' show RiveAnimation;
+import 'package:shady/shady.dart';
+import 'package:songster/views/widgets/shader_builder.dart';
 
 class GradientBackground extends StatefulWidget {
   final Widget child;
@@ -98,20 +102,38 @@ class _GradientBackgroundState extends State<GradientBackground>
     super.initState();
   }
 
+/*
+RiveAnimation.asset(
+  'assets/vehicles.riv',
+)
+*/
   @override
   Widget build(BuildContext context) {
-    final child = SafeArea(
-      top: false,
-      child: widget.child,
-    );
+    return SizedBox(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: Stack(
+          children: [
+            const RiveAnimation.asset(
+              'assets/rive/color_morph.riv',
+              fit: BoxFit.cover,
+            ),
+            buildChild()
+          ],
+        ));
+  }
 
-    return AnimatedMeshGradient(
-      colors: primaryColors,
-      options: AnimatedMeshGradientOptions(speed: 0.01),
-      child: child,
-    );
+  ShadyCanvas buildShadyCanvas() {
+    return ShadyCanvas(Shady(
+      assetName: 'assets/shaders/test.frag',
+      shaderToy: true,
+    ));
+  }
+
+  Widget buildAnimatedBuilder() {
     return AnimatedBuilder(
       animation: _controller,
+      child: buildChild(),
       builder: (context, child) => Container(
           decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -128,6 +150,21 @@ class _GradientBackgroundState extends State<GradientBackground>
             colors: primaryColors,
           )),
           child: child),
+    );
+  }
+
+  Widget buildMesh() {
+    return AnimatedMeshGradient(
+      colors: primaryColors,
+      options: AnimatedMeshGradientOptions(speed: 0.01),
+      child: buildChild(),
+    );
+  }
+
+  Widget buildChild() {
+    return SafeArea(
+      top: false,
+      child: widget.child,
     );
   }
 
