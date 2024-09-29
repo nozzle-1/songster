@@ -4,9 +4,10 @@ import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:songster/song/hitster_song.dart';
 
 class HitsterCard extends StatefulWidget {
-  final HitsterSong song;
+  final HitsterSong? song;
+  final String hitsterUrl;
 
-  const HitsterCard({super.key, required this.song});
+  const HitsterCard({super.key, required this.hitsterUrl, required this.song});
 
   @override
   State<HitsterCard> createState() => _HitsterCardState();
@@ -61,7 +62,7 @@ class _HitsterCardState extends State<HitsterCard>
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(15)),
                   child: PrettyQrView.data(
-                      data: widget.song.hitsterUrl,
+                      data: widget.hitsterUrl,
                       decoration: const PrettyQrDecoration(
                         shape: PrettyQrSmoothSymbol(color: Colors.white),
                       ))),
@@ -77,13 +78,13 @@ class _HitsterCardState extends State<HitsterCard>
                 height: 220,
                 width: 220,
                 child: Builder(builder: (context) {
-                  if (widget.song.picture.isNotEmpty) {
-                    return Image.memory(
-                      widget.song.picture,
+                  if (widget.song == null || widget.song!.picture.isEmpty) {
+                    return Container(
+                      color: Colors.black,
                     );
                   }
-                  return Container(
-                    color: Colors.black,
+                  return Image.memory(
+                    widget.song!.picture,
                   );
                 }),
               ),

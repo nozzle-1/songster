@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_flip_card/flutter_flip_card.dart';
 import 'package:songster/song/hitster_song.dart';
+import 'package:songster/song/hitster_song_url.dart';
 import 'package:songster/song/player/hitster_song_player.dart';
 import 'package:songster/song/player/just_audio_song_player.dart';
 import 'package:songster/widgets/buttons.dart';
@@ -18,9 +19,11 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
   final flipController = FlipCardController();
   bool _isScanning = false;
   bool _isPlaying = false;
+  bool _isDownloading = false;
   final HitsterSongPlayer _player = JustAudioSongPlayer();
 
   HitsterSong? _song;
+  HitsterSongUrl? _songUrl;
 
   @override
   void initState() {
@@ -32,7 +35,7 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
     super.initState();
   }
 
-  bool get _showCard => _song != null;
+  bool get _showCard => _songUrl != null;
 
   @override
   Widget build(BuildContext context) {
@@ -53,18 +56,28 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                             borderRadius: BorderRadius.circular(12.0),
                             child: HitsterCardScanner(
                               onDetect: (hitsterSongUrl) async {
-                                final song =
-                                    await _player.setSong(hitsterSongUrl);
                                 setState(() {
                                   _isScanning = false;
+                                  _isDownloading = true;
+                                  _songUrl = hitsterSongUrl;
+                                });
+
+                                final song =
+                                    await _player.setSong(hitsterSongUrl);
+
+                                setState(() {
+                                  _isDownloading = false;
                                   _song = song;
                                 });
+
+                                await _player.play();
                               },
                             )),
                       );
                     }
                     if (_showCard) {
-                      return HitsterCard(song: _song!);
+                      return HitsterCard(
+                          hitsterUrl: _songUrl!.url, song: _song);
                     }
 
                     return const SizedBox();
@@ -75,13 +88,23 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
             if (_showCard)
               IconButton.filled(
                 onPressed: () async {
+                  if (_isDownloading) {
+                    return;
+                  }
                   if (_isPlaying) {
                     await _player.pause();
                     return;
                   }
                   await _player.play();
                 },
-                icon: Icon(_isPlaying ? Icons.stop : Icons.play_arrow),
+                icon: Builder(builder: (context) {
+                  if (_isDownloading) {
+                    return const CircularProgressIndicator(
+                      color: Colors.white,
+                    );
+                  }
+                  return Icon(_isPlaying ? Icons.stop : Icons.play_arrow);
+                }),
                 style: ElevatedButton.styleFrom(
                   shape: const CircleBorder(),
                   backgroundColor: Colors.white.withAlpha(70),
@@ -96,6 +119,7 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                   setState(() {
                     _isScanning = true;
                     _song = null;
+                    _songUrl = null;
                   });
                 },
               ),
