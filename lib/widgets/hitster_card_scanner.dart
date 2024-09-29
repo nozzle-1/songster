@@ -3,17 +3,18 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:safe_device/safe_device.dart';
+import 'package:songster/song/hitster_song_url.dart';
 
-class QrCodeScanner extends StatefulWidget {
-  final Function(String qrCodeValue) onDetect;
+class HitsterCardScanner extends StatefulWidget {
+  final Function(HitsterSongUrl hitsterUrl) onDetect;
 
-  const QrCodeScanner({super.key, required this.onDetect});
+  const HitsterCardScanner({super.key, required this.onDetect});
 
   @override
-  State<QrCodeScanner> createState() => _QrCodeScannerState();
+  State<HitsterCardScanner> createState() => _HitsterCardScannerState();
 }
 
-class _QrCodeScannerState extends State<QrCodeScanner> {
+class _HitsterCardScannerState extends State<HitsterCardScanner> {
   final _random = Random();
 
   @override
@@ -33,7 +34,8 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
     final songId = _random.nextInt(307) + 1;
     var padded = "$songId".padLeft(5, "0");
 
-    widget.onDetect("www.hitster.com/fr/$padded");
+    final hitsterUrl = HitsterSongUrl.parse("www.hitstergame.com/fr/$padded");
+    widget.onDetect(hitsterUrl);
   }
 
   void onDetect(BarcodeCapture? capture) {
@@ -43,6 +45,9 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
     }
 
     final List<Barcode> barcodes = capture.barcodes;
-    widget.onDetect(barcodes.firstOrNull?.rawValue ?? "");
+    final hitsterUrl =
+        HitsterSongUrl.parse(barcodes.firstOrNull?.rawValue ?? "");
+
+    widget.onDetect(hitsterUrl);
   }
 }

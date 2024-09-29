@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:metadata_god/src/bridge_generated.dart';
 import 'package:page_flip_builder/page_flip_builder.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:songster/song/hitster_song.dart';
 
 class HitsterCard extends StatefulWidget {
-  final String hitsterUrl;
-  final Metadata? metadata;
+  final HitsterSong song;
 
-  const HitsterCard(
-      {super.key, required this.hitsterUrl, required this.metadata});
+  const HitsterCard({super.key, required this.song});
 
   @override
   State<HitsterCard> createState() => _HitsterCardState();
@@ -55,35 +53,39 @@ class _HitsterCardState extends State<HitsterCard>
             elevation: 0,
             margin: const EdgeInsets.all(25),
             color: Colors.white.withAlpha(70),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                    height: 220,
-                    decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(15)),
-                    child: PrettyQrView.data(
-                        data: widget.hitsterUrl,
-                        decoration: const PrettyQrDecoration(
-                          shape: PrettyQrSmoothSymbol(color: Colors.white),
-                        ))),
-              ],
+            child: Center(
+              child: Container(
+                  height: 220,
+                  width: 220,
+                  decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(15)),
+                  child: PrettyQrView.data(
+                      data: widget.song.hitsterUrl,
+                      decoration: const PrettyQrDecoration(
+                        shape: PrettyQrSmoothSymbol(color: Colors.white),
+                      ))),
             ),
           ),
           backBuilder: (_) => Card(
-            margin: EdgeInsets.all(25),
-            color: Color(0xAACE1CE8),
+            margin: const EdgeInsets.all(25),
+            // color: Color(0xAACE1CE8),
+            color: Colors.white.withAlpha(70),
+
             child: Center(
-              child: Column(
-                children: [
-                  Text(widget.metadata?.artist ?? ""),
-                  Text("${widget.metadata?.title}"),
-                  Text("${widget.metadata?.year}"),
-                  if (widget.metadata?.picture?.data != null)
-                    Image.memory(widget.metadata!.picture!.data,
-                        height: 100, width: 100)
-                ],
+              child: SizedBox(
+                height: 220,
+                width: 220,
+                child: Builder(builder: (context) {
+                  if (widget.song.picture.isNotEmpty) {
+                    return Image.memory(
+                      widget.song.picture,
+                    );
+                  }
+                  return Container(
+                    color: Colors.black,
+                  );
+                }),
               ),
             ),
           ),

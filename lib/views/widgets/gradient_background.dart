@@ -1,12 +1,8 @@
 import 'dart:math';
 
-import 'package:animate_gradient/animate_gradient.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_shaders/flutter_shaders.dart';
 import 'package:mesh_gradient/mesh_gradient.dart';
-import 'package:rive/rive.dart' show RiveAnimation;
 import 'package:shady/shady.dart';
-import 'package:songster/views/widgets/shader_builder.dart';
 
 class GradientBackground extends StatefulWidget {
   final Widget child;
