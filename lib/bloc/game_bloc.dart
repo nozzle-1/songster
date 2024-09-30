@@ -25,17 +25,23 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<GoBackward>(onGoBackwardEvent);
   }
 
-  void onInitialEvent(InitialEvent event, Emitter<GameState> emit) {
-    // TODO attention à ne pas le déclencher plusieurs fois (plusieurs souscriptions)
-    _player.state.listen(
-      (playerState) => emit(
-        state.copyWith(
-          status: playerState == HitsterSongPlayerState.playing
-              ? Status.playing
-              : Status.paused,
-        ),
-      ),
-    );
+  Future<void> onInitialEvent(
+      InitialEvent event, Emitter<GameState> emit) async {
+    //Listen player state
+    await emit.forEach(_player.state, onData: (playerState) {
+      print("PLAYER_STATE: $playerState");
+      final isPlaying = playerState == HitsterSongPlayerState.playing;
+      return state.copyWith(
+        status: isPlaying ? Status.playing : Status.paused,
+      );
+    });
+
+    await emit.forEach(_player.currentPosition, onData: (currentPosition) {
+      return state.copyWith(
+          currentPosition: currentPosition, duration: _player.duration);
+    });
+
+    emit(state.copyWith(status: Status.scanning));
   }
 
   Future<void> onScanEvent(ScanEvent event, Emitter<GameState> emit) async {
@@ -70,10 +76,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       return;
     }
     if (state.status == Status.playing) {
-      await _player.play();
+      await _player.pause();
+      return;
     }
     if (state.status == Status.paused) {
-      await _player.pause();
+      await _player.play();
+      return;
     }
   }
 

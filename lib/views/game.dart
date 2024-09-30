@@ -17,11 +17,6 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> with TickerProviderStateMixin {
-  final HitsterSongPlayer _player = JustAudioSongPlayer();
-
-  HitsterSong? _song;
-  HitsterSongUrl? _songUrl;
-
   Future<void> launchScan(BuildContext context) async {
     context.read<GameBloc>().add(ScanEvent());
   }
@@ -53,7 +48,9 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => GameBloc()..add(InitialEvent()),
-      child: BlocBuilder<GameBloc, GameState>(builder: (
+      child: BlocConsumer<GameBloc, GameState>(listener: (context, state) {
+        print("StateChanged: ${state.status}");
+      }, builder: (
         context,
         state,
       ) {
@@ -86,7 +83,8 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                           }
                           if (state.songUrl != null) {
                             return HitsterCard(
-                                hitsterUrl: _songUrl!.url, song: _song);
+                                hitsterUrl: state.songUrl!.url,
+                                song: state.song);
                           }
                           return const SizedBox();
                         }),
@@ -94,40 +92,38 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                       Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 32, vertical: 16),
-                        child: StreamBuilder<Duration>(
-                            stream: _player.currentPosition,
-                            builder: (context, snapshot) {
-                              final songDuration = _player.duration;
-                              final currentPosition =
-                                  snapshot.data ?? const Duration();
-                              final percentage = songDuration.inSeconds <= 0
-                                  ? 0
-                                  : (currentPosition.inSeconds /
-                                          songDuration.inSeconds) *
-                                      100;
+                        child: Builder(builder: (context) {
+                          final songDuration = state.duration;
+                          final currentPosition =
+                              state.currentPosition ?? const Duration();
+                          final percentage = songDuration.inSeconds <= 0
+                              ? 0
+                              : (currentPosition.inSeconds /
+                                      songDuration.inSeconds) *
+                                  100;
 
-                              return TweenAnimationBuilder<double>(
-                                duration: const Duration(milliseconds: 500),
-                                curve: Curves.easeInOut,
-                                tween: Tween<double>(
-                                  begin: 0,
-                                  end: percentage / 100,
-                                ),
-                                builder: (context, value, _) =>
-                                    LinearProgressIndicator(
-                                        borderRadius: BorderRadius.circular(25),
-                                        minHeight: 10,
-                                        backgroundColor: state.status ==
-                                                Status.scanning
+                          return TweenAnimationBuilder<double>(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
+                            tween: Tween<double>(
+                              begin: 0,
+                              end: percentage / 100,
+                            ),
+                            builder: (context, value, _) =>
+                                LinearProgressIndicator(
+                                    borderRadius: BorderRadius.circular(25),
+                                    minHeight: 10,
+                                    backgroundColor:
+                                        state.status == Status.scanning
                                             ? const Color.fromRGBO(72, 30, 138,
                                                 70) // TODO find disabled color
                                             : Colors.white.withAlpha(70),
-                                        color: Colors.white,
-                                        value: state.status == Status.scanning
-                                            ? 0
-                                            : value),
-                              );
-                            }),
+                                    color: Colors.white,
+                                    value: state.status == Status.scanning
+                                        ? 0
+                                        : value),
+                          );
+                        }),
                       ),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,7 +137,7 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                                     await pressGoBackwardButton(context),
                           ),
                           RoundIconButton(
-                            icon: state.status == Status.paused
+                            icon: state.status == Status.playing
                                 ? Icons.pause
                                 : Icons.play_arrow,
                             onPressed: state.status == Status.loading

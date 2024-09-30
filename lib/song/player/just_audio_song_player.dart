@@ -21,6 +21,10 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
 
   JustAudioSongPlayer() {
     _player.playerStateStream.listen((state) {
+      // print('ICI: ${state.processingState}');
+      if (state.processingState != ProcessingState.ready) {
+        return;
+      }
       if (state.playing) {
         _stateStream.sink.add(HitsterSongPlayerState.playing);
       } else {
@@ -35,6 +39,8 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
     _player.positionStream.listen((duration) {
       _currentPosition.sink.add(duration);
     });
+
+    _stateStream.sink.add(HitsterSongPlayerState.empty);
   }
 
   @override

@@ -18,6 +18,7 @@ abstract class HitsterSongPlayer {
 }
 
 enum HitsterSongPlayerState {
+  empty,
   loading,
   ready,
   playing,
