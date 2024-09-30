@@ -54,6 +54,7 @@ dependencies:
   rive: ^0.13.14
   metadata_god: ^0.5.2+1
   path_provider: ^2.1.4
+  flutter_bloc: ^8.1.6
 
 dev_dependencies:
   flutter_test:
