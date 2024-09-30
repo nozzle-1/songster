@@ -8,7 +8,13 @@ abstract class HitsterSongPlayer {
 
   Future<void> pause();
 
+  Future<void> backward();
+
+  Future<void> forward();
+
   Stream<HitsterSongPlayerState> get state;
+  Stream<Duration> get currentPosition;
+  Duration get duration;
 }
 
 enum HitsterSongPlayerState {

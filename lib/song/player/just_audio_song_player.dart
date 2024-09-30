@@ -14,6 +14,11 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
   final StreamController<HitsterSongPlayerState> _stateStream =
       StreamController.broadcast();
 
+  final StreamController<Duration> _currentPosition =
+      StreamController.broadcast();
+
+  Duration _duration = const Duration();
+
   JustAudioSongPlayer() {
     _player.playerStateStream.listen((state) {
       if (state.playing) {
@@ -21,6 +26,14 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
       } else {
         _stateStream.sink.add(HitsterSongPlayerState.pause);
       }
+    });
+
+    _player.durationStream.listen((duration) {
+      _duration = duration ?? const Duration();
+    });
+
+    _player.positionStream.listen((duration) {
+      _currentPosition.sink.add(duration);
     });
   }
 
@@ -48,5 +61,25 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
   }
 
   @override
+  Future<void> backward() async {
+    final position = _player.position;
+    final nextPosition = position.inSeconds - 10;
+    await _player.seek(Duration(seconds: nextPosition));
+  }
+
+  @override
+  Future<void> forward() async {
+    final position = _player.position;
+    final nextPosition = position.inSeconds + 10;
+    await _player.seek(Duration(seconds: nextPosition));
+  }
+
+  @override
   Stream<HitsterSongPlayerState> get state => _stateStream.stream;
+
+  @override
+  Duration get duration => _duration;
+
+  @override
+  Stream<Duration> get currentPosition => _currentPosition.stream;
 }
