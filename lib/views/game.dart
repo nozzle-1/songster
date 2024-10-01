@@ -48,13 +48,11 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => GameBloc()..add(InitialEvent()),
-      child: BlocConsumer<GameBloc, GameState>(listener: (context, state) {
-        print("StateChanged: ${state.status}");
-      }, builder: (
-        context,
-        state,
-      ) {
-        return Padding(
+      child: BlocListener<GameBloc, GameState>(
+        listener: (context, state) {
+          print('Listener: ${state.status}');
+        },
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Center(
             child: Column(
@@ -66,7 +64,29 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                     children: [
                       AspectRatio(
                         aspectRatio: 1,
-                        child: Builder(builder: (context) {
+                        child: BlocBuilder<GameBloc, GameState>(
+                            //     buildWhen: (previous, current) {
+                            //   print(
+                            //       'BuildWhen | Previous: ${previous.status} - current: ${current.status}');
+                            //   if (previous.status == Status.scanning &&
+                            //       current.status == Status.loading) {
+                            //     return true;
+                            //   }
+                            //   if (previous.status == Status.playing &&
+                            //       current.status == Status.scanning) {
+                            //     return true;
+                            //   }
+                            //   if (previous.status == Status.loading &&
+                            //       current.status == Status.scanning) {
+                            //     return true;
+                            //   }
+                            //   if (previous.status == Status.paused &&
+                            //       current.status == Status.scanning) {
+                            //     return true;
+                            //   }
+                            //   return false;
+                            // },
+                            builder: (context, state) {
                           if (state.status == Status.scanning) {
                             return Card(
                               margin: const EdgeInsets.all(25),
@@ -92,29 +112,21 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                       Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 32, vertical: 16),
-                        child: Builder(builder: (context) {
-                          final songDuration = state.duration;
-                          final currentPosition =
-                              state.currentPosition ?? const Duration();
-                          final percentage = songDuration.inSeconds <= 0
-                              ? 0
-                              : (currentPosition.inSeconds /
-                                      songDuration.inSeconds) *
-                                  100;
-
+                        child: BlocBuilder<GameBloc, GameState>(
+                            builder: (context, state) {
                           return TweenAnimationBuilder<double>(
                             duration: const Duration(milliseconds: 500),
                             curve: Curves.easeInOut,
                             tween: Tween<double>(
                               begin: 0,
-                              end: percentage / 100,
+                              end: state.percentageSongPlayed,
                             ),
                             builder: (context, value, _) =>
                                 LinearProgressIndicator(
                                     borderRadius: BorderRadius.circular(25),
                                     minHeight: 10,
                                     backgroundColor:
-                                        state.status == Status.scanning
+                                        state.playerButtonIsDisabled
                                             ? const Color.fromRGBO(72, 30, 138,
                                                 70) // TODO find disabled color
                                             : Colors.white.withAlpha(70),
@@ -125,50 +137,55 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                           );
                         }),
                       ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          RoundIconButton(
-                            icon: Icons.replay_10,
-                            onPressed: state.status == Status.loading
-                                ? null
-                                : () async =>
-                                    await pressGoBackwardButton(context),
-                          ),
-                          RoundIconButton(
-                            icon: state.status == Status.playing
-                                ? Icons.pause
-                                : Icons.play_arrow,
-                            onPressed: state.status == Status.loading
-                                ? null
-                                : () async =>
-                                    await pressMusicStatusButton(context),
-                            size: ButtonSize.big,
-                            isLoading: state.status == Status.loading,
-                          ),
-                          RoundIconButton(
-                            icon: Icons.forward_10,
-                            onPressed: state.status == Status.loading
-                                ? null
-                                : () async =>
-                                    await pressGoForwadButton(context),
-                          ),
-                        ],
-                      ),
+                      BlocBuilder<GameBloc, GameState>(
+                          builder: (context, state) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            RoundIconButton(
+                              icon: Icons.replay_10,
+                              onPressed: state.playerButtonIsDisabled
+                                  ? null
+                                  : () async =>
+                                      await pressGoBackwardButton(context),
+                            ),
+                            RoundIconButton(
+                              icon: state.status == Status.playing
+                                  ? Icons.pause
+                                  : Icons.play_arrow,
+                              onPressed: state.playerButtonIsDisabled
+                                  ? null
+                                  : () async =>
+                                      await pressMusicStatusButton(context),
+                              size: ButtonSize.big,
+                              isLoading: state.status == Status.loading,
+                            ),
+                            RoundIconButton(
+                              icon: Icons.forward_10,
+                              onPressed: state.playerButtonIsDisabled
+                                  ? null
+                                  : () async =>
+                                      await pressGoForwadButton(context),
+                            ),
+                          ],
+                        );
+                      }),
                     ],
                   ),
                 ),
-                MainButton(
-                  label:
-                      state.status != Status.scanning ? "Suivant" : "Scan...",
-                  onPressed: () async => await launchScan(context),
-                ),
+                BlocBuilder<GameBloc, GameState>(builder: (context, state) {
+                  return MainButton(
+                    label:
+                        state.status != Status.scanning ? "Suivant" : "Scan...",
+                    onPressed: () async => await launchScan(context),
+                  );
+                }),
               ],
             ),
           ),
-        );
-      }),
+        ),
+      ),
     );
   }
 }

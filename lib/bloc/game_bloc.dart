@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:songster/song/hitster_song.dart';
 import 'package:songster/song/hitster_song_url.dart';
@@ -27,37 +29,38 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   Future<void> onInitialEvent(
       InitialEvent event, Emitter<GameState> emit) async {
-    //Listen player state
-    await emit.forEach(_player.state, onData: (playerState) {
-      print("PLAYER_STATE: $playerState");
-      final isPlaying = playerState == HitsterSongPlayerState.playing;
-      return state.copyWith(
-        status: isPlaying ? Status.playing : Status.paused,
-      );
-    });
+    await Future.wait([
+      emit.forEach(_player.state, onData: (playerState) {
+        print('PlayerState: $playerState');
+        final status = switch (playerState) {
+          HitsterSongPlayerState.empty => Status.scanning,
+          HitsterSongPlayerState.loading => Status.loading,
+          HitsterSongPlayerState.pause => Status.paused,
+          HitsterSongPlayerState.playing => Status.playing,
+          _ => Status.scanning
+        };
 
-    await emit.forEach(_player.currentPosition, onData: (currentPosition) {
-      return state.copyWith(
-          currentPosition: currentPosition, duration: _player.duration);
-    });
+        return state.copyWith(
+            status: status,
+            duration: status == Status.playing ? _player.duration : null);
+      }),
+      emit.forEach(_player.currentPosition, onData: (currentPosition) {
+        return state.copyWith(currentPosition: currentPosition);
+      })
+    ]);
 
-    emit(state.copyWith(status: Status.scanning));
+    emit(state.toScanningState());
   }
 
   Future<void> onScanEvent(ScanEvent event, Emitter<GameState> emit) async {
     await _player.pause();
 
-    emit(state.copyWith(
-      status: Status.scanning,
-      song: null,
-      songUrl: null,
-    ));
+    emit(state.toScanningState());
   }
 
   Future<void> onDownloadEvent(
       DownloadEvent event, Emitter<GameState> emit) async {
-    emit(state.copyWith(
-      status: Status.loading,
+    emit(state.toLoadingState(
       songUrl: event.songUrl,
     ));
 
@@ -65,8 +68,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     await _player.play();
 
-    emit(state.copyWith(
-      status: Status.playing,
+    emit(state.toPlayingState(
       song: song,
     ));
   }
@@ -75,13 +77,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     if (state.status == Status.loading) {
       return;
     }
+
     if (state.status == Status.playing) {
       await _player.pause();
-      return;
-    }
-    if (state.status == Status.paused) {
+    } else if (state.status == Status.paused) {
       await _player.play();
-      return;
     }
   }
 
@@ -90,6 +90,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     if (state.status == Status.loading) {
       return;
     }
+
     await _player.forward();
   }
 
@@ -98,6 +99,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     if (state.status == Status.loading) {
       return;
     }
+
     await _player.backward();
   }
 }
