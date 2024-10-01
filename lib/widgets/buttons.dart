@@ -18,8 +18,12 @@ class MainButton extends StatelessWidget {
           child: TextButton(
             style: ButtonStyle(
                 elevation: WidgetStateProperty.all(2),
-                backgroundColor:
-                    WidgetStateProperty.all(Colors.white.withAlpha(70))),
+                backgroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return Colors.white.withAlpha(20);
+                  }
+                  return Colors.white.withAlpha(70);
+                })),
             onPressed: onPressed,
             child: Neon(
               color: Colors.orange,

@@ -64,9 +64,4 @@ class GameState {
   }
 }
 
-enum Status {
-  scanning,
-  loading,
-  playing,
-  paused;
-}
+enum Status { scanning, loading, playing, paused, ready }

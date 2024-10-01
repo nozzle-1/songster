@@ -31,13 +31,13 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       InitialEvent event, Emitter<GameState> emit) async {
     await Future.wait([
       emit.forEach(_player.state, onData: (playerState) {
-        print('PlayerState: $playerState');
+        // print('PlayerState: $playerState');
         final status = switch (playerState) {
           HitsterSongPlayerState.empty => Status.scanning,
+          HitsterSongPlayerState.ready => Status.ready,
           HitsterSongPlayerState.loading => Status.loading,
           HitsterSongPlayerState.pause => Status.paused,
-          HitsterSongPlayerState.playing => Status.playing,
-          _ => Status.scanning
+          HitsterSongPlayerState.playing => Status.playing
         };
 
         return state.copyWith(
@@ -66,11 +66,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     final song = await _player.setSong(event.songUrl);
 
-    await _player.play();
-
-    emit(state.toPlayingState(
+    emit(state.copyWith(
       song: song,
     ));
+
+    await _player.play();
   }
 
   Future<void> onToggleEvent(ToggleEvent event, Emitter<GameState> emit) async {

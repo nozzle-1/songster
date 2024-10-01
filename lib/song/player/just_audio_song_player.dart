@@ -23,8 +23,7 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
     _player.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.idle) {
         _stateStream.sink.add(HitsterSongPlayerState.empty);
-      } else if (state.processingState == ProcessingState.buffering ||
-          state.processingState == ProcessingState.loading) {
+      } else if (state.processingState == ProcessingState.loading) {
         _stateStream.sink.add(HitsterSongPlayerState.loading);
       } else if (state.playing) {
         _stateStream.sink.add(HitsterSongPlayerState.playing);
