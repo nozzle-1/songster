@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:songster/song/hitster_song.dart';
 import 'package:songster/song/hitster_song_url.dart';
@@ -12,6 +10,7 @@ part 'game_state.dart';
 
 class GameBloc extends Bloc<GameEvent, GameState> {
   final HitsterSongPlayer _player = JustAudioSongPlayer();
+  bool _isInitialized = false;
 
   GameBloc()
       : super(GameState(
@@ -29,15 +28,22 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   Future<void> onInitialEvent(
       InitialEvent event, Emitter<GameState> emit) async {
+    if (_isInitialized) {
+      return;
+    }
+
+    _isInitialized = true;
+
     await Future.wait([
       emit.forEach(_player.state, onData: (playerState) {
-        // print('PlayerState: $playerState');
+        if (playerState != HitsterSongPlayerState.pause &&
+            playerState != HitsterSongPlayerState.playing) {
+          return state;
+        }
         final status = switch (playerState) {
-          HitsterSongPlayerState.empty => Status.scanning,
-          HitsterSongPlayerState.ready => Status.ready,
-          HitsterSongPlayerState.loading => Status.loading,
           HitsterSongPlayerState.pause => Status.paused,
-          HitsterSongPlayerState.playing => Status.playing
+          HitsterSongPlayerState.playing => Status.playing,
+          _ => throw "Invalid state"
         };
 
         return state.copyWith(
@@ -67,6 +73,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final song = await _player.setSong(event.songUrl);
 
     emit(state.copyWith(
+      status: Status.ready,
       song: song,
     ));
 

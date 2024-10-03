@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:songster/bloc/game_bloc.dart';
-import 'package:songster/song/hitster_song.dart';
 import 'package:songster/song/hitster_song_url.dart';
-import 'package:songster/song/player/hitster_song_player.dart';
-import 'package:songster/song/player/just_audio_song_player.dart';
 import 'package:songster/widgets/buttons.dart';
 import 'package:songster/widgets/hitster_card.dart';
 import 'package:songster/widgets/hitster_card_scanner.dart';
@@ -61,28 +58,6 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                     AspectRatio(
                       aspectRatio: 1,
                       child: BlocBuilder<GameBloc, GameState>(
-                          //Fonctionne mais affiche l'image de la musique précédente
-                          //     buildWhen: (previous, current) {
-                          //   print(
-                          //       'BuildWhen | Previous: ${previous.status} - current: ${current.status}');
-                          //   if (previous.status == Status.scanning &&
-                          //       current.status == Status.loading) {
-                          //     return true;
-                          //   }
-                          //   if (previous.status == Status.playing &&
-                          //       current.status == Status.scanning) {
-                          //     return true;
-                          //   }
-                          //   if (previous.status == Status.loading &&
-                          //       current.status == Status.scanning) {
-                          //     return true;
-                          //   }
-                          //   if (previous.status == Status.paused &&
-                          //       current.status == Status.scanning) {
-                          //     return true;
-                          //   }
-                          //   return false;
-                          // },
                           builder: (context, state) {
                         if (state.status == Status.scanning) {
                           return Card(
