@@ -5,6 +5,7 @@ import 'package:metadata_god/metadata_god.dart';
 import 'package:minio/minio.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:songster/ui/page_transition.dart';
 import 'package:songster/ui/theme.dart';
 import 'package:songster/views/game.dart';
 import 'package:songster/views/home.dart';
@@ -34,12 +35,11 @@ class MyApp extends StatelessWidget {
         '/': (context) => Home(),
         '/game': (context) => const Game(),
       },
-      builder: (context, child) => Scaffold(
-          extendBodyBehindAppBar: true,
-          appBar: AppBar(),
-          body: GradientBackground(
-            child: child!,
-          )),
+      builder: (context, child) {
+        return GradientBackground(
+          child: child!,
+        );
+      },
     );
   }
 }
