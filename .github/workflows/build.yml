@@ -1,0 +1,30 @@
+name: Stable Songster build
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  build:
+    name: Build and upload Songster
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: 'macos-12'
+            version: '14.2'
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Flutter SDK
+        uses: MobileDevOps/flutter-sdk-action@v1.0.0
+        with:
+          flutter-sdk-version: 3.24.1
+
+      - run: flutter --version
+      - run: flutter doctor
+      - run: flutter pub get
+      - run: flutter test
+      - run: flutter build ios --release --no-codesign
