@@ -30,7 +30,7 @@ jobs:
       - run: flutter build ios --release --no-codesign
 
       - run: mkdir Payload
-	    - run: mkdir Payload/Songster.app
-	    - run: cp -R archive.xcarchive/Products/Applications/Songster.app/ Payload/Songster.app/
-	    - run: zip -r Songster.ipa Payload
+      - run: mkdir Payload/Songster.app
+      - run: cp -R archive.xcarchive/Products/Applications/Songster.app/ Payload/Songster.app/
+      - run: zip -r Songster.ipa Payload
 
