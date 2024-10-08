@@ -53,17 +53,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           draft: false
           files: songster.ipa
-          body: |
-            Changelog
-            
-            ${{ steps.changelog.outputs.changes }}
-
-            Build Info
-            
-            Built at (UTC): `${{ steps.date.outputs.date }}`
-            Built at (UTC date): `${{ steps.date_altstore.outputs.date }}`
-            Commit SHA: `${{ github.sha }}`
-            Version: `${{ github.ref_name }}`
+          body: ${{ steps.changelog.outputs.changes }}
 
       - name: Upload SideStore.ipa Artifact
         uses: actions/upload-artifact@v3.1.0
