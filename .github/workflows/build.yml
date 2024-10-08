@@ -43,7 +43,8 @@ jobs:
           token: ${{ secrets.PAT_GITHUB }}
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          draft: true
+          draft: false
+          
           files: songster.ipa
           body: |
             ## Changelog
