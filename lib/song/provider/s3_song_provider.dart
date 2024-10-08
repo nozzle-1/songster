@@ -16,6 +16,7 @@ class S3SongProvider implements HisterSongProvider {
       endPoint: const String.fromEnvironment("S3_ENDPOINT"),
       accessKey: const String.fromEnvironment("S3_ACCESS_KEY"),
       secretKey: const String.fromEnvironment("S3_SECRET_KEY"));
+
   final bucket = const String.fromEnvironment("S3_BUCKET");
 
   S3SongProvider() {
