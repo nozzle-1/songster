@@ -40,7 +40,7 @@ jobs:
       - name: Upload to new stable release
         uses: softprops/action-gh-release@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_GITHUB }}
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           draft: true
