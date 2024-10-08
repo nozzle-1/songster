@@ -30,6 +30,13 @@ Run the app:
 flutter run
 ```
 
+
+### Helpful commands
+List installed app on Simulator (to find Files app folder) https://medium.com/@liwp.stephen/solution-how-to-get-files-in-files-app-in-ios-simulator-de1e9c9dc6fe
+```bash
+xcrun simctl listapps booted
+```
+
 ## 🤝 Contributing
 We welcome contributions! Follow these steps to get involved:
 

@@ -20,5 +20,13 @@
       "flutterMode": "release",
       "args": ["--dart-define-from-file=.env.local"]
     },
+    {
+      "name": "Mobile (debug)",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "type": "dart",
+      "flutterMode": "debug",
+      "args": ["--dart-define-from-file=.env.local"]
+    },
   ]
 }
