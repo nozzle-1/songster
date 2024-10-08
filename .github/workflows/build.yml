@@ -37,6 +37,14 @@ jobs:
         id: date_altstore
         run: echo "date=$(date -u +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
+      - name: Update CHANGELOG
+        id: changelog
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ github.token }}
+          tag: ${{ github.ref_name }}
+          writeToFile: false
+          
       - name: Upload to new stable release
         uses: softprops/action-gh-release@v1
         with:
@@ -44,14 +52,13 @@ jobs:
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           draft: false
-
           files: songster.ipa
           body: |
-            ## Changelog
+            Changelog
             
-            - TODO
-            
-            ## Build Info
+            ${{ steps.changelog.outputs.changes }}
+
+            Build Info
             
             Built at (UTC): `${{ steps.date.outputs.date }}`
             Built at (UTC date): `${{ steps.date_altstore.outputs.date }}`
