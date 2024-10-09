@@ -26,16 +26,16 @@ class S3SongProvider implements HisterSongProvider {
   @override
   Future<HitsterSong> download(HitsterSongUrl url) async {
     final fullPath = await _buildSongPath(url);
-    final alreadyExists = await _checkIfExists(fullPath);
-    if (alreadyExists) {
-      return await _buildSong(fullPath, url);
-    }
+    // final alreadyExists = await _checkIfExists(fullPath);
+    // if (alreadyExists) {
+    //   return await _buildSong(fullPath, url);
+    // }
 
-    await _downloadAndSave(fullPath, url);
-    return await _buildSong(fullPath, url);
+    final presignedUrl = await _downloadAndSave(fullPath, url);
+    return await _buildSong(fullPath, url, presignedUrl: presignedUrl);
   }
 
-  Future<void> _downloadAndSave(String fullPath, HitsterSongUrl url) async {
+  Future<String> _downloadAndSave(String fullPath, HitsterSongUrl url) async {
     final fileName = _buildFileName(url);
 
     io.File file = io.File(fullPath);
@@ -45,6 +45,8 @@ class S3SongProvider implements HisterSongProvider {
     for (var songByte in songBytes) {
       await file.writeAsBytes(songByte, mode: io.FileMode.append);
     }
+    return await minio.presignedGetObject(
+        bucket, '${url.regionCode}/$mp3Ext/$fileName');
   }
 
   @override
@@ -68,16 +70,23 @@ class S3SongProvider implements HisterSongProvider {
     return await io.File(path).exists();
   }
 
-  Future<HitsterSong> _buildSong(String path, HitsterSongUrl url) async {
-    final metadata = await MetadataGod.readMetadata(file: path);
+  Future<HitsterSong> _buildSong(String path, HitsterSongUrl url,
+      {String? presignedUrl}) async {
+    Metadata? metadata = null;
+    try {
+      metadata = await MetadataGod.readMetadata(file: path);
+    } catch (err) {
+      print(err);
+    }
 
     return HitsterSong(
         fullPath: path,
-        title: metadata.title ?? "",
-        artist: metadata.artist ?? "",
-        year: metadata.year?.toString() ?? "",
-        album: metadata.album ?? "",
-        picture: metadata.picture?.data ?? Uint8List.fromList([]),
-        hitsterUrl: url.url);
+        title: metadata?.title ?? "",
+        artist: metadata?.artist ?? "",
+        year: metadata?.year?.toString() ?? "",
+        album: metadata?.album ?? "",
+        picture: metadata?.picture?.data ?? Uint8List.fromList([]),
+        hitsterUrl: url.url,
+        songUrl: presignedUrl);
   }
 }

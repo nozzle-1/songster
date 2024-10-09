@@ -20,6 +20,7 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
   Duration _duration = const Duration();
 
   JustAudioSongPlayer() {
+    _player.setAllowsExternalPlayback(true);
     _player.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.idle) {
         _stateStream.sink.add(HitsterSongPlayerState.empty);
@@ -38,6 +39,10 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
 
     _player.positionStream.listen((duration) {
       _currentPosition.sink.add(duration);
+    });
+
+    _player.icyMetadataStream.listen((metadata) {
+      print('Metadata changed: ${metadata?.info}');
     });
 
     _stateStream.sink.add(HitsterSongPlayerState.empty);
@@ -60,7 +65,7 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
 
     final song = await _songProvider.download(hitsterUrl);
 
-    await _player.setFilePath(song.fullPath);
+    await _player.setUrl(song.songUrl!);
 
     _stateStream.sink.add(HitsterSongPlayerState.ready);
     return song;

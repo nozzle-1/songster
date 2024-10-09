@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_to_airplay/flutter_to_airplay.dart';
 import 'package:songster/bloc/game_bloc.dart';
 import 'package:songster/song/hitster_song_url.dart';
 import 'package:songster/widgets/buttons.dart';
@@ -75,6 +76,7 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                                   )),
                             );
                           }
+
                           if (state.songUrl != null) {
                             return HitsterCard(
                                 hitsterUrl: state.songUrl!.url,
@@ -117,6 +119,17 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            AirPlayRoutePickerView(
+                              tintColor: Colors.white,
+                              activeTintColor: Colors.white,
+                              backgroundColor: Colors.transparent,
+                              onClosePickerView: () {
+                                print('PICKER CLOSE');
+                              },
+                              onShowPickerView: () {
+                                print('PICKER SHOW');
+                              },
+                            ),
                             RoundIconButton(
                               icon: Icons.replay_10,
                               onPressed: state.playerButtonIsDisabled
