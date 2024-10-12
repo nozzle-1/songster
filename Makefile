@@ -5,7 +5,8 @@ tests:
 	flutter test
 
 compile:
-	printf "$(FLUTTER_ENV)" >> .env
+	echo "$(BASE64_FLUTTER_ENV)" | base64 -d > .env
+	cat .env
 	flutter pub get
 	flutter build ios --release --no-codesign --dart-define-from-file=.env --build-name=$(VERSION)
 
@@ -17,6 +18,3 @@ ipa:
 	mkdir Payload/Runner.app
 	cp -R build/ios/iphoneos/Runner.app/ Payload/Runner.app/
 	zip -r songster.ipa Payload
-
-
-action:
