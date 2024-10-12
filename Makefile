@@ -5,7 +5,7 @@ tests:
 	flutter test
 
 compile:
-	printf "$(FLUTTER_ENV)" >> .env
+	echo "$(BASE64_FLUTTER_ENV)" | base64 -d > .env
 	flutter pub get
 	flutter build ios --release --no-codesign --dart-define-from-file=.env --build-name=$(VERSION)
 

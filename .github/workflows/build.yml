@@ -24,10 +24,7 @@ jobs:
           flutter-sdk-version: 3.24.1
 
       - name: Compile Flutter app
-        run: FLUTTER_ENV="$FLUTTER_ENV" VERSION="${{ github.ref_name }}" make compile
-        env:
-          FLUTTER_ENV: |
-            ${{ secrets.FLUTTER_ENV }}
+        run: BASE64_FLUTTER_ENV="${{ secrets.BASE64_FLUTTER_ENV }}" VERSION="${{ github.ref_name }}" make compile
 
       - name: Convert to IPA
         run: make ipa
