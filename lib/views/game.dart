@@ -48,130 +48,135 @@ class _GameState extends State<Game> with TickerProviderStateMixin {
     return SongsterScaffold(
       body: BlocProvider(
         create: (context) => GameBloc()..add(InitialEvent()),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AspectRatio(
-                        aspectRatio: 1,
-                        child: BlocBuilder<GameBloc, GameState>(
-                            builder: (context, state) {
-                          if (state.status == Status.scanning) {
-                            return Card(
-                              margin: const EdgeInsets.all(25),
-                              child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  child: HitsterCardScanner(
-                                    onDetect: (hitsterSongUrl) async =>
-                                        await onDetectSong(
-                                      context: context,
-                                      hitsterSongUrl: hitsterSongUrl,
-                                    ),
-                                  )),
-                            );
-                          }
+        child: BlocListener<GameBloc, GameState>(
+          listener: (context, state) {
+            if (state.status == Status.error) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(state.error ?? "Une erreur est survenue"),
+              ));
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AspectRatio(
+                          aspectRatio: 1,
+                          child: BlocBuilder<GameBloc, GameState>(
+                              builder: (context, state) {
+                            if (state.status == Status.scanning) {
+                              return Card(
+                                margin: const EdgeInsets.all(25),
+                                child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    child: HitsterCardScanner(
+                                      onDetect: (hitsterSongUrl) async =>
+                                          await onDetectSong(
+                                        context: context,
+                                        hitsterSongUrl: hitsterSongUrl,
+                                      ),
+                                    )),
+                              );
+                            }
 
-                          if (state.songUrl != null) {
-                            return HitsterCard(
-                                hitsterUrl: state.songUrl!.url,
-                                song: state.song);
-                          }
-                          return const SizedBox();
-                        }),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 16),
-                        child: BlocBuilder<GameBloc, GameState>(
+                            if (state.songUrl != null) {
+                              return HitsterCard(
+                                  hitsterUrl: state.songUrl!.url,
+                                  song: state.song);
+                            }
+                            return const SizedBox();
+                          }),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 16),
+                          child: BlocBuilder<GameBloc, GameState>(
+                              builder: (context, state) {
+                            return TweenAnimationBuilder<double>(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                              tween: Tween<double>(
+                                begin: 0,
+                                end: state.percentageSongPlayed,
+                              ),
+                              builder: (context, value, _) =>
+                                  LinearProgressIndicator(
+                                      borderRadius: BorderRadius.circular(25),
+                                      minHeight: 10,
+                                      backgroundColor: state
+                                              .playerButtonIsDisabled
+                                          ? const Color.fromRGBO(72, 30, 138,
+                                              70) // TODO find disabled color
+                                          : Colors.white.withAlpha(70),
+                                      color: Colors.white,
+                                      value: state.status == Status.scanning
+                                          ? 0
+                                          : value),
+                            );
+                          }),
+                        ),
+                        BlocBuilder<GameBloc, GameState>(
                             builder: (context, state) {
-                          return TweenAnimationBuilder<double>(
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
-                            tween: Tween<double>(
-                              begin: 0,
-                              end: state.percentageSongPlayed,
-                            ),
-                            builder: (context, value, _) =>
-                                LinearProgressIndicator(
-                                    borderRadius: BorderRadius.circular(25),
-                                    minHeight: 10,
-                                    backgroundColor:
-                                        state.playerButtonIsDisabled
-                                            ? const Color.fromRGBO(72, 30, 138,
-                                                70) // TODO find disabled color
-                                            : Colors.white.withAlpha(70),
-                                    color: Colors.white,
-                                    value: state.status == Status.scanning
-                                        ? 0
-                                        : value),
+                          return Column(
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  RoundIconButton(
+                                    icon: Icons.replay_10,
+                                    onPressed: state.playerButtonIsDisabled
+                                        ? null
+                                        : () async =>
+                                            await pressGoBackwardButton(
+                                                context),
+                                  ),
+                                  RoundIconButton(
+                                    icon: state.status == Status.playing
+                                        ? Icons.pause
+                                        : Icons.play_arrow,
+                                    onPressed: state.playerButtonIsDisabled
+                                        ? null
+                                        : () async =>
+                                            await pressMusicStatusButton(
+                                                context),
+                                    size: ButtonSize.big,
+                                    isLoading: state.status == Status.loading,
+                                  ),
+                                  RoundIconButton(
+                                    icon: Icons.forward_10,
+                                    onPressed: state.playerButtonIsDisabled
+                                        ? null
+                                        : () async =>
+                                            await pressGoForwadButton(context),
+                                  ),
+                                ],
+                              ),
+                            ],
                           );
                         }),
-                      ),
-                      BlocBuilder<GameBloc, GameState>(
-                          builder: (context, state) {
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            AirPlayRoutePickerView(
-                              tintColor: Colors.white,
-                              activeTintColor: Colors.white,
-                              backgroundColor: Colors.transparent,
-                              onClosePickerView: () {
-                                print('PICKER CLOSE');
-                              },
-                              onShowPickerView: () {
-                                print('PICKER SHOW');
-                              },
-                            ),
-                            RoundIconButton(
-                              icon: Icons.replay_10,
-                              onPressed: state.playerButtonIsDisabled
-                                  ? null
-                                  : () async =>
-                                      await pressGoBackwardButton(context),
-                            ),
-                            RoundIconButton(
-                              icon: state.status == Status.playing
-                                  ? Icons.pause
-                                  : Icons.play_arrow,
-                              onPressed: state.playerButtonIsDisabled
-                                  ? null
-                                  : () async =>
-                                      await pressMusicStatusButton(context),
-                              size: ButtonSize.big,
-                              isLoading: state.status == Status.loading,
-                            ),
-                            RoundIconButton(
-                              icon: Icons.forward_10,
-                              onPressed: state.playerButtonIsDisabled
-                                  ? null
-                                  : () async =>
-                                      await pressGoForwadButton(context),
-                            ),
-                          ],
-                        );
-                      }),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                BlocBuilder<GameBloc, GameState>(builder: (context, state) {
-                  return MainButton(
-                    label:
-                        state.status != Status.scanning ? "Suivant" : "Scan...",
-                    onPressed: state.status == Status.loading ||
-                            state.status == Status.scanning
-                        ? null
-                        : () async => await launchScan(context),
-                  );
-                }),
-              ],
+                  BlocBuilder<GameBloc, GameState>(builder: (context, state) {
+                    return MainButton(
+                      label: state.status != Status.scanning
+                          ? "Suivant"
+                          : "Scan...",
+                      onPressed: state.status == Status.loading ||
+                              state.status == Status.scanning
+                          ? null
+                          : () async => await launchScan(context),
+                    );
+                  }),
+                ],
+              ),
             ),
           ),
         ),

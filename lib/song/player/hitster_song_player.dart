@@ -15,6 +15,8 @@ abstract class HitsterSongPlayer {
   Stream<HitsterSongPlayerState> get state;
   Stream<Duration> get currentPosition;
   Duration get duration;
+
+  Future<void> dispose();
 }
 
 enum HitsterSongPlayerState {
