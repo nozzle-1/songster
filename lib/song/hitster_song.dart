@@ -8,6 +8,7 @@ final class HitsterSong {
   final String year;
   final String album;
   final Uint8List picture;
+  final String? songUrl;
 
   HitsterSong(
       {required this.fullPath,
@@ -16,5 +17,6 @@ final class HitsterSong {
       required this.year,
       required this.album,
       required this.picture,
-      required this.hitsterUrl});
+      required this.hitsterUrl,
+      required this.songUrl});
 }

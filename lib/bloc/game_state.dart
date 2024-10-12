@@ -6,13 +6,15 @@ class GameState {
   final HitsterSong? song;
   final Duration currentPosition;
   final Duration duration;
+  final String? error;
 
   GameState(
       {required this.status,
       required this.songUrl,
       required this.song,
       this.currentPosition = const Duration(),
-      this.duration = const Duration()});
+      this.duration = const Duration(),
+      this.error});
 
   double get percentageSongPlayed {
     final percentage = duration.inSeconds <= 0
@@ -45,6 +47,16 @@ class GameState {
         songUrl: songUrl);
   }
 
+  GameState toErrorState({required String errorMessage}) {
+    return copyWith(
+        status: Status.error,
+        duration: const Duration(),
+        currentPosition: const Duration(),
+        song: null,
+        songUrl: songUrl,
+        error: errorMessage);
+  }
+
   GameState toPlayingState({required HitsterSong song}) {
     return copyWith(status: Status.playing, song: song);
   }
@@ -54,14 +66,16 @@ class GameState {
       HitsterSongUrl? songUrl,
       HitsterSong? song,
       Duration? currentPosition,
-      Duration? duration}) {
+      Duration? duration,
+      String? error}) {
     return GameState(
         status: status ?? this.status,
         songUrl: songUrl ?? this.songUrl,
         song: song ?? this.song,
         duration: duration ?? this.duration,
-        currentPosition: currentPosition ?? this.currentPosition);
+        currentPosition: currentPosition ?? this.currentPosition,
+        error: error ?? this.error);
   }
 }
 
-enum Status { scanning, loading, playing, paused, ready }
+enum Status { scanning, loading, playing, paused, ready, error }

@@ -23,6 +23,8 @@ class S3SongProvider implements HisterSongProvider {
     MetadataGod.initialize();
   }
 
+  static String get _currentFileExt => m4aExt;
+
   @override
   Future<HitsterSong> download(HitsterSongUrl url) async {
     final fullPath = await _buildSongPath(url);
@@ -36,16 +38,17 @@ class S3SongProvider implements HisterSongProvider {
   }
 
   Future<void> _downloadAndSave(String fullPath, HitsterSongUrl url) async {
-    final fileName = _buildFileName(url);
-
     io.File file = io.File(fullPath);
-    var songStream =
-        await minio.getObject(bucket, '${url.regionCode}/$mp3Ext/$fileName');
+    var songStream = await minio.getObject(bucket, _buildS3Path(url));
+
     var songBytes = await songStream.toList();
     for (var songByte in songBytes) {
       await file.writeAsBytes(songByte, mode: io.FileMode.append);
     }
   }
+
+  String _buildS3Path(HitsterSongUrl url) =>
+      '${url.regionCode}/$_currentFileExt/${_buildFileName(url)}';
 
   @override
   Future<void> delete(HitsterSong path) {
@@ -54,7 +57,7 @@ class S3SongProvider implements HisterSongProvider {
   }
 
   String _buildFileName(HitsterSongUrl url) {
-    return "${url.id}.$mp3Ext";
+    return "${url.id}.$_currentFileExt";
   }
 
   Future<String> _buildSongPath(HitsterSongUrl url) async {
@@ -68,16 +71,33 @@ class S3SongProvider implements HisterSongProvider {
     return await io.File(path).exists();
   }
 
-  Future<HitsterSong> _buildSong(String path, HitsterSongUrl url) async {
-    final metadata = await MetadataGod.readMetadata(file: path);
+  Future<HitsterSong> _buildSong(
+    String path,
+    HitsterSongUrl url,
+  ) async {
+    final presignedUrl =
+        await minio.presignedGetObject(bucket, _buildS3Path(url));
+
+    Metadata? metadata = null;
+    try {
+      metadata = await MetadataGod.readMetadata(file: path);
+    } catch (err) {
+      print(err);
+    } finally {
+      io.File file = io.File(path);
+      if (file.existsSync()) {
+        await file.delete();
+      }
+    }
 
     return HitsterSong(
         fullPath: path,
-        title: metadata.title ?? "",
-        artist: metadata.artist ?? "",
-        year: metadata.year?.toString() ?? "",
-        album: metadata.album ?? "",
-        picture: metadata.picture?.data ?? Uint8List.fromList([]),
-        hitsterUrl: url.url);
+        title: metadata?.title ?? "",
+        artist: metadata?.artist ?? "",
+        year: metadata?.year?.toString() ?? "",
+        album: metadata?.album ?? "",
+        picture: metadata?.picture?.data ?? Uint8List.fromList([]),
+        hitsterUrl: url.url,
+        songUrl: presignedUrl);
   }
 }

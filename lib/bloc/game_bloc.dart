@@ -70,14 +70,16 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       songUrl: event.songUrl,
     ));
 
-    final song = await _player.setSong(event.songUrl);
-
-    emit(state.copyWith(
-      status: Status.ready,
-      song: song,
-    ));
-
-    await _player.play();
+    try {
+      final song = await _player.setSong(event.songUrl);
+      emit(state.copyWith(
+        status: Status.ready,
+        song: song,
+      ));
+      await _player.play();
+    } catch (err) {
+      emit(state.toErrorState(errorMessage: err.toString()));
+    }
   }
 
   Future<void> onToggleEvent(ToggleEvent event, Emitter<GameState> emit) async {
@@ -108,5 +110,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     }
 
     await _player.backward();
+  }
+
+  @override
+  Future<void> close() async {
+    await _player.dispose();
+    return super.close();
   }
 }

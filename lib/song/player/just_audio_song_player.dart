@@ -8,8 +8,8 @@ import 'package:songster/song/provider/hister_song_provider.dart';
 import 'package:songster/song/provider/s3_song_provider.dart';
 
 class JustAudioSongPlayer implements HitsterSongPlayer {
-  static final AudioPlayer _player = AudioPlayer();
   static final HisterSongProvider _songProvider = S3SongProvider();
+  final AudioPlayer _player = AudioPlayer();
 
   final StreamController<HitsterSongPlayerState> _stateStream =
       StreamController.broadcast();
@@ -19,8 +19,15 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
 
   Duration _duration = const Duration();
 
+  StreamSubscription<PlayerState>? _playerStateSubscription;
+
+  StreamSubscription<Duration?>? _playerDurationSubscription;
+
+  StreamSubscription<Duration>? _playerPositionSubscription;
+
   JustAudioSongPlayer() {
-    _player.playerStateStream.listen((state) {
+    _player.setAllowsExternalPlayback(true);
+    _playerStateSubscription = _player.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.idle) {
         _stateStream.sink.add(HitsterSongPlayerState.empty);
       } else if (state.processingState == ProcessingState.loading) {
@@ -32,11 +39,11 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
       }
     });
 
-    _player.durationStream.listen((duration) {
+    _playerDurationSubscription = _player.durationStream.listen((duration) {
       _duration = duration ?? const Duration();
     });
 
-    _player.positionStream.listen((duration) {
+    _playerPositionSubscription = _player.positionStream.listen((duration) {
       _currentPosition.sink.add(duration);
     });
 
@@ -60,7 +67,7 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
 
     final song = await _songProvider.download(hitsterUrl);
 
-    await _player.setFilePath(song.fullPath);
+    await _player.setUrl(song.songUrl!);
 
     _stateStream.sink.add(HitsterSongPlayerState.ready);
     return song;
@@ -88,4 +95,12 @@ class JustAudioSongPlayer implements HitsterSongPlayer {
 
   @override
   Stream<Duration> get currentPosition => _currentPosition.stream;
+
+  @override
+  Future<void> dispose() async {
+    await _playerStateSubscription?.cancel();
+    await _playerDurationSubscription?.cancel();
+    await _playerPositionSubscription?.cancel();
+    await _player.dispose();
+  }
 }
