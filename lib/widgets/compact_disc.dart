@@ -42,10 +42,15 @@ class CompactDisc extends StatelessWidget {
                 if (picture == null) {
                   return Container(
                     color: Colors.black,
+                    height: 225,
+                    width: 225,
                   );
                 }
                 return Image.memory(
                   picture!,
+                  height: 225,
+                  width: 225,
+                  fit: BoxFit.fill,
                 );
               }),
             ),

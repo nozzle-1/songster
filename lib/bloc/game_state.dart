@@ -30,12 +30,15 @@ class GameState {
       status == Status.scanning || status == Status.loading;
 
   GameState toScanningState() {
-    return copyWith(
-        status: Status.scanning,
-        duration: const Duration(),
-        currentPosition: const Duration(),
-        song: null,
-        songUrl: null);
+    final state = copyWith(
+      status: Status.scanning,
+      duration: const Duration(),
+      currentPosition: const Duration(),
+      removeSong: true,
+      removeUrl: true,
+    );
+
+    return state;
   }
 
   GameState toLoadingState({required HitsterSongUrl songUrl}) {
@@ -43,7 +46,7 @@ class GameState {
         status: Status.loading,
         duration: const Duration(),
         currentPosition: const Duration(),
-        song: null,
+        removeSong: true,
         songUrl: songUrl);
   }
 
@@ -52,7 +55,7 @@ class GameState {
         status: Status.error,
         duration: const Duration(),
         currentPosition: const Duration(),
-        song: null,
+        removeSong: true,
         songUrl: songUrl,
         error: errorMessage);
   }
@@ -64,14 +67,16 @@ class GameState {
   GameState copyWith(
       {Status? status,
       HitsterSongUrl? songUrl,
+      bool removeUrl = false,
       HitsterSong? song,
+      bool removeSong = false,
       Duration? currentPosition,
       Duration? duration,
       String? error}) {
     return GameState(
         status: status ?? this.status,
-        songUrl: songUrl ?? this.songUrl,
-        song: song ?? this.song,
+        songUrl: removeUrl ? null : songUrl ?? this.songUrl,
+        song: removeSong ? null : song ?? this.song,
         duration: duration ?? this.duration,
         currentPosition: currentPosition ?? this.currentPosition,
         error: error ?? this.error);
