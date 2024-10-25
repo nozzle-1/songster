@@ -57,6 +57,7 @@ dependencies:
   flutter_bloc: ^8.1.6
   flutter_to_airplay: ^2.0.5
   auto_size_text: ^3.0.0
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:

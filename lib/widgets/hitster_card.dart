@@ -87,59 +87,68 @@ class _HitsterCardState extends State<HitsterCard>
                           ))),
                 ),
               ),
-              backBuilder: (_) => Card(
-                margin: const EdgeInsets.all(25),
-                // color: Color(0xAACE1CE8),
-                color: Colors.white.withAlpha(70),
+              backBuilder: (_) {
+                return Card(
+                  margin: const EdgeInsets.all(25),
+                  // color: Color(0xAACE1CE8),
+                  color: Colors.white.withAlpha(70),
 
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(top: 24, left: 16, right: 16),
-                      child: AutoSizeText(
-                        widget.song?.artist ?? "",
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: AutoSizeText(widget.song?.title ?? "",
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          style: const TextStyle(
-                              fontSize: 24, color: Colors.white)),
-                    ),
-                    ClipRect(
-                      child: Align(
-                        heightFactor: 0.5,
-                        widthFactor: 1,
-                        alignment: Alignment.topCenter,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: AnimatedBuilder(
-                              animation: _discRotationController,
-                              builder: (_, child) {
-                                return Transform.rotate(
-                                  angle: _discRotationController.value * 2 * pi,
-                                  child: CompactDisc(
-                                      picture: widget.song?.picture),
-                                );
-                              }),
+                  child: Builder(builder: (context) {
+                    if (widget.song == null) {
+                      return const SizedBox();
+                    }
+                    return Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              top: 24, left: 16, right: 16),
+                          child: AutoSizeText(
+                            widget.song?.artist ?? "",
+                            maxLines: 1,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: AutoSizeText(widget.song?.title ?? "",
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              style: const TextStyle(
+                                  fontSize: 24, color: Colors.white)),
+                        ),
+                        ClipRect(
+                          child: Align(
+                            heightFactor: 0.5,
+                            widthFactor: 1,
+                            alignment: Alignment.topCenter,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: AnimatedBuilder(
+                                  animation: _discRotationController,
+                                  builder: (_, child) {
+                                    return Transform.rotate(
+                                      angle: _discRotationController.value *
+                                          2 *
+                                          pi,
+                                      child: CompactDisc(
+                                          coverUrl: widget.song?.coverUrl),
+                                    );
+                                  }),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+                );
+              },
             )));
   }
 }
