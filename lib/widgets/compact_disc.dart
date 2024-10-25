@@ -1,15 +1,15 @@
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 class CompactDisc extends StatelessWidget {
   const CompactDisc({
     super.key,
-    required this.picture,
+    required this.coverUrl,
   });
 
-  final Uint8List? picture;
-
+  final String? coverUrl;
+  final Color diskColor = Colors.black;
+  
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -39,19 +39,23 @@ class CompactDisc extends StatelessWidget {
             clipper: const HoleClipper(holeRadiusRatio: 0.2),
             child: ClipOval(
               child: Builder(builder: (context) {
-                if (picture == null) {
+                if (coverUrl == null) {
                   return Container(
-                    color: Colors.black,
+                    color: diskColor,
                     height: 225,
                     width: 225,
                   );
                 }
-                return Image.memory(
-                  picture!,
-                  height: 225,
-                  width: 225,
-                  fit: BoxFit.fill,
-                );
+                return Image.network(coverUrl!,
+                    height: 225, width: 225, fit: BoxFit.fill,
+                    loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: diskColor,
+                    height: 225,
+                    width: 225,
+                  );
+                });
               }),
             ),
           ),

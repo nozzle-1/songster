@@ -34,7 +34,11 @@ class _HitsterCardScannerState extends State<HitsterCardScanner> {
     final songId = _random.nextInt(307) + 1;
     var padded = "$songId".padLeft(5, "0");
 
-    final hitsterUrl = HitsterSongUrl.parse("www.hitstergame.com/fr/$padded");
+    Random r = Random();
+    bool isV2 = r.nextDouble() <= 0.5;
+
+    final hitsterUrl = HitsterSongUrl.parse(
+        "www.hitstergame.com/fr/${isV2 ? 'aaaa0010/' : ''}$padded");
     widget.onDetect(hitsterUrl);
   }
 

@@ -1,16 +1,17 @@
-import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:metadata_god/metadata_god.dart';
 import 'package:minio/minio.dart';
 import 'package:songster/song/hitster_song.dart';
 import 'package:songster/song/hitster_song_url.dart';
 import 'package:songster/song/provider/hister_song_provider.dart';
-import 'package:path_provider/path_provider.dart' as syspaths;
-import 'dart:io' as io;
+import 'package:http/http.dart' as http;
 
 class S3SongProvider implements HisterSongProvider {
   static const mp3Ext = "mp3";
   static const m4aExt = "m4a";
+
+  final Map<HitsterGameVersion, List<SongMetadata>> metadatas = {};
 
   final minio = Minio(
       endPoint: const String.fromEnvironment("S3_ENDPOINT"),
@@ -23,32 +24,12 @@ class S3SongProvider implements HisterSongProvider {
     MetadataGod.initialize();
   }
 
-  static String get _currentFileExt => m4aExt;
+  static String get _currentSongExt => mp3Ext;
 
   @override
   Future<HitsterSong> download(HitsterSongUrl url) async {
-    final fullPath = await _buildSongPath(url);
-    final alreadyExists = await _checkIfExists(fullPath);
-    if (alreadyExists) {
-      return await _buildSong(fullPath, url);
-    }
-
-    await _downloadAndSave(fullPath, url);
-    return await _buildSong(fullPath, url);
+    return await _buildSong(url);
   }
-
-  Future<void> _downloadAndSave(String fullPath, HitsterSongUrl url) async {
-    io.File file = io.File(fullPath);
-    var songStream = await minio.getObject(bucket, _buildS3Path(url));
-
-    var songBytes = await songStream.toList();
-    for (var songByte in songBytes) {
-      await file.writeAsBytes(songByte, mode: io.FileMode.append);
-    }
-  }
-
-  String _buildS3Path(HitsterSongUrl url) =>
-      '${url.regionCode}/$_currentFileExt/${_buildFileName(url)}';
 
   @override
   Future<void> delete(HitsterSong path) {
@@ -56,48 +37,80 @@ class S3SongProvider implements HisterSongProvider {
     throw UnimplementedError();
   }
 
-  String _buildFileName(HitsterSongUrl url) {
-    return "${url.id}.$_currentFileExt";
-  }
-
-  Future<String> _buildSongPath(HitsterSongUrl url) async {
-    var fileName = _buildFileName(url);
-    final appDir = await syspaths.getTemporaryDirectory();
-
-    return '${appDir.path}/$fileName';
-  }
-
-  Future<bool> _checkIfExists(String path) async {
-    return await io.File(path).exists();
-  }
-
   Future<HitsterSong> _buildSong(
-    String path,
     HitsterSongUrl url,
   ) async {
-    final presignedUrl =
-        await minio.presignedGetObject(bucket, _buildS3Path(url));
+    final presignedSongUrl = await minio.presignedGetObject(bucket,
+        '${url.regionCode}/${getVersionPath(url)}/$_currentSongExt/${url.id}.$_currentSongExt');
+    final presignedCoverUrl = await minio.presignedGetObject(bucket,
+        '${url.regionCode}/${getVersionPath(url)}/cover/${url.id}.jpg');
 
-    Metadata? metadata = null;
-    try {
-      metadata = await MetadataGod.readMetadata(file: path);
-    } catch (err) {
-      print(err);
-    } finally {
-      io.File file = io.File(path);
-      if (file.existsSync()) {
-        await file.delete();
-      }
-    }
+    var metadata = await getMetadata(url);
 
     return HitsterSong(
-        fullPath: path,
-        title: metadata?.title ?? "",
-        artist: metadata?.artist ?? "",
-        year: metadata?.year?.toString() ?? "",
-        album: metadata?.album ?? "",
-        picture: metadata?.picture?.data ?? Uint8List.fromList([]),
+        title: metadata.title,
+        artist: metadata.artist,
+        year: metadata.year.toString(),
+        album: metadata.album,
+        coverUrl: presignedCoverUrl,
         hitsterUrl: url.url,
-        songUrl: presignedUrl);
+        songUrl: presignedSongUrl);
+  }
+
+  Future<SongMetadata> getMetadata(HitsterSongUrl url) async {
+    if (!metadatas.containsKey(url.version)) {
+      metadatas[url.version] = await fetchMetadata(url);
+    }
+    var allMetadata = metadatas[url.version]!;
+
+    return allMetadata.firstWhere((song) => song.id == url.id);
+  }
+
+  Future<List<SongMetadata>> fetchMetadata(HitsterSongUrl url) async {
+    final presignedUrl = await minio.presignedGetObject(
+        bucket, '${url.regionCode}/${getVersionPath(url)}/metadata.json');
+
+    var response = await http.get(Uri.parse(presignedUrl));
+
+    var metadatas = jsonDecode(utf8.decode(response.bodyBytes)) as List;
+
+    var metadata = metadatas.map((v) => SongMetadata.fromJson(v)).toList();
+
+    return metadata;
+  }
+
+  String getVersionPath(HitsterSongUrl url) => switch (url.version) {
+        HitsterGameVersion.frV1 => "v1",
+        HitsterGameVersion.frV2 => "v2",
+      };
+}
+
+class SongMetadata {
+  final String id;
+  final String title;
+  final String artist;
+  final String album;
+  final int year;
+
+  SongMetadata._(
+      {required this.id,
+      required this.title,
+      required this.artist,
+      required this.album,
+      required this.year});
+
+  factory SongMetadata.fromJson(Map<String, dynamic> json) {
+    return switch (json) {
+      {
+        'id': String id,
+        'title': String title,
+        'artist': String artist,
+        'album': String album,
+        'year': int year
+      } =>
+        SongMetadata._(
+            id: id, title: title, artist: artist, album: album, year: year),
+      _ => throw const FormatException('Failed to load metadata.'),
+    };
   }
 }
