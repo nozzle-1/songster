@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_to_airplay/flutter_to_airplay.dart';
 import 'package:songster/bloc/game_bloc.dart';
 import 'package:songster/song/hitster_song_url.dart';
 import 'package:songster/widgets/buttons.dart';
