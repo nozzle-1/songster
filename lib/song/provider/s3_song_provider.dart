@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:metadata_god/metadata_god.dart';
 import 'package:minio/minio.dart';
 import 'package:songster/song/hitster_song.dart';
 import 'package:songster/song/hitster_song_url.dart';
@@ -20,9 +19,7 @@ class S3SongProvider implements HisterSongProvider {
 
   final bucket = const String.fromEnvironment("S3_BUCKET");
 
-  S3SongProvider() {
-    MetadataGod.initialize();
-  }
+  S3SongProvider();
 
   static String get _currentSongExt => mp3Ext;
 

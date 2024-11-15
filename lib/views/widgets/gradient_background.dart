@@ -105,24 +105,21 @@ RiveAnimation.asset(
 */
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: Stack(
-          children: [
-            // const RiveAnimation.asset(
-            //   'assets/rive/color_morph.riv',
-            //   fit: BoxFit.cover,
-            // ),
-            Image.asset(
-              "assets/bg-2.gif",
-              fit: BoxFit.cover,
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width,
-            ),
-            buildChild()
-          ],
-        ));
+    return Stack(
+      children: [
+        // const RiveAnimation.asset(
+        //   'assets/rive/color_morph.riv',
+        //   fit: BoxFit.cover,
+        // ),
+        Image.asset(
+          "assets/bg-2.gif",
+          fit: BoxFit.cover,
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+        ),
+        buildChild()
+      ],
+    );
   }
 
   ShadyCanvas buildShadyCanvas() {
@@ -166,6 +163,8 @@ RiveAnimation.asset(
   Widget buildChild() {
     return SafeArea(
       top: false,
+      bottom: false,
+      maintainBottomViewPadding: true,
       child: widget.child,
     );
   }
