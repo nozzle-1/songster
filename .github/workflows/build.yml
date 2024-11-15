@@ -23,11 +23,11 @@ jobs:
         with:
           flutter-sdk-version: 3.24.1
 
-      - name: Compile Flutter app
-        run: BASE64_FLUTTER_ENV="${{ secrets.BASE64_FLUTTER_ENV }}" VERSION="${{ github.ref_name }}" make compile
+      - name: Compile for iOS
+        run: BASE64_FLUTTER_ENV="${{ secrets.BASE64_FLUTTER_ENV }}" VERSION="${{ github.ref_name }}" make compile-ios
 
-      - name: Convert to IPA
-        run: make ipa
+      - name: Compile for Android
+        run: BASE64_FLUTTER_ENV="${{ secrets.BASE64_FLUTTER_ENV }}" VERSION="${{ github.ref_name }}" make compile-android
 
       - name: Get current date
         id: date
@@ -52,14 +52,22 @@ jobs:
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           draft: false
-          files: songster.ipa
+          files: |
+            songster.ipa
+            songster.apk
           body: ${{ steps.changelog.outputs.changes }}
 
-      - name: Upload SideStore.ipa Artifact
+      - name: Upload songster.apk Artifact
         uses: actions/upload-artifact@v3.1.0
         with:
           name: songster.ipa
           path: songster.ipa
+
+      - name: Upload songster.apk Artifact
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: songster.apk
+          path: songster.apk
 
       - name: Reset SideSource cache
         run: curl $SIDESOURCE_RESETCACHE_URL
