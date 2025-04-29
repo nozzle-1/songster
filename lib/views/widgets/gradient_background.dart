@@ -27,6 +27,8 @@ class _GradientBackgroundState extends State<GradientBackground>
     Color(0xFF24213E),
     Color(0xFF39223F),
     Color(0xFF552441),
+    Color(0xFF39223F),
+    Color(0xFF552441),
   ];
 
   @override
